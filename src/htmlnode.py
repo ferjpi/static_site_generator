@@ -1,3 +1,6 @@
+from textnode import TextTypes
+
+
 class HtmlNode:
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag
@@ -50,3 +53,24 @@ class ParentNode(HtmlNode):
 
         props_str = self.props_to_html()
         return f"<{self.tag}{props_str}>{content}</{self.tag}>"
+
+
+def text_node_to_html_node(text_node):
+    if text_node.text_type not in TextTypes:
+        raise Exception("wrong text type")
+
+    match text_node.text_type:
+        case TextTypes.TEXT:
+            return LeafNode(None, text_node.text)
+        case TextTypes.BOLD:
+            return LeafNode("b", text_node.text)
+        case TextTypes.ITALIC:
+            return LeafNode("i", text_node.text)
+        case TextTypes.CODE:
+            return LeafNode("code", text_node.text)
+        case TextTypes.LINK:
+            return LeafNode("a", text_node.text, props={"href": text_node.url})
+        case TextTypes.IMAGE:
+            return LeafNode(
+                "img", None, props={"src": text_node.url, "alt": text_node.text}
+            )
