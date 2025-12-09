@@ -1,4 +1,7 @@
-from textnode import TextTypes
+import re
+
+from typing import List
+from textnode import TextNode, TextTypes
 
 
 class HtmlNode:
@@ -74,3 +77,89 @@ def text_node_to_html_node(text_node):
             return LeafNode(
                 "img", None, props={"src": text_node.url, "alt": text_node.text}
             )
+
+
+def split_nodes_delimiter(
+    old_nodes: List[TextNode], delimiter: str, text_type: TextTypes
+):
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextTypes.TEXT:
+            new_nodes.append(node)
+        elif delimiter in node.text:
+            split_values = node.text.split(delimiter)
+            new_nodes.append(TextNode(split_values[0], TextTypes.TEXT))
+            new_nodes.extend(TextNode(value, text_type) for value in split_values[1:-1])
+            new_nodes.append(TextNode(split_values[-1], TextTypes.TEXT))
+        else:
+            new_nodes.append(node)
+
+    return new_nodes
+
+
+def extract_markdown_images(text):
+    matches = re.findall(r"!\[(.*?)\]\((.*?)\)", text)
+
+    return matches
+
+
+def extract_markdown_links(text):
+    matches = re.findall(r"\[(.*?)\]\((.*?)\)", text)
+
+    return matches
+
+
+def split_nodes_image(old_nodes) -> List[TextNode]:
+    split_nodes = []
+
+    for node in old_nodes:
+        splitted_text = re.split(r"(!\[(?:.*?)\]\((?:.*?)\))", node.text)
+
+        for text in splitted_text:
+            if text == "":
+                continue
+            elif re.match(r"!\[.*?\]\(.*?\)", text):
+                t, url = extract_markdown_images(text)[0]
+                split_nodes.append(TextNode(t, TextTypes.IMAGE, url))
+            else:
+                split_nodes.append(TextNode(text, node.text_type, node.url))
+    return split_nodes
+
+
+def split_nodes_link(old_nodes: List[TextNode]) -> List[TextNode]:
+    split_nodes = []
+
+    for node in old_nodes:
+        if node.text_type != TextTypes.TEXT:
+            split_nodes.append(node)
+            continue
+
+        splitted_text = re.split(r"((?<!!)\[(?:.*?)\]\((?:.*?)\))", node.text)
+
+        for text in splitted_text:
+            if text == "" or not text:
+                continue
+
+            if text.startswith("!"):
+                split_nodes.append(TextNode(text, TextTypes.TEXT))
+
+            elif text.startswith("[") and text.endswith(")"):
+                t, url = extract_markdown_links(text)[0]
+                split_nodes.append(TextNode(t, TextTypes.LINK, url))
+            else:
+                split_nodes.append(TextNode(text, node.text_type, node.url))
+    return split_nodes
+
+
+def text_to_textnodes(text: str) -> List[TextNode]:
+    node = TextNode(text, TextTypes.TEXT)
+    nodes = [node]
+
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+
+    nodes = split_nodes_delimiter(nodes, "`", TextTypes.CODE)
+    nodes = split_nodes_delimiter(nodes, "_", TextTypes.ITALIC)
+    nodes = split_nodes_delimiter(nodes, "**", TextTypes.BOLD)
+
+    return nodes
