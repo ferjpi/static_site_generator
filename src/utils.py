@@ -5,7 +5,7 @@ from htmlnode import extract_title, markdown_to_html_node
 logging.basicConfig(level=logging.DEBUG)
 
 
-def generate_page(from_path: str, template_path: str, dest_path: str):
+def generate_page(base_path: str, from_path: str, template_path: str, dest_path: str):
     logging.info(
         f"Generating page from {from_path} to {dest_path} using {template_path}"
     )
@@ -17,6 +17,8 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
 
     template = template.replace("{{ Content }}", content)
     template = template.replace("{{ Title }}", title)
+    template = template.replace("href='/", f"href='{base_path}/")
+    template = template.replace("src='/", f"src='{base_path}/")
 
     dest_dir_path = os.path.dirname(dest_path)
     if dest_dir_path != "":
@@ -26,7 +28,7 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
 
 
 def generate_pages_recursive(
-    dir_path_content: str, template_path: str, dest_dir_path: str
+    base_path: str, dir_path_content: str, template_path: str, dest_dir_path: str
 ):
     # crawl every entry in the content directory
     # for earch markdown file found, generate a new html file. It should be written in the
@@ -45,8 +47,8 @@ def generate_pages_recursive(
         if os.path.isdir(abs_path):
             print(f"dir: {f}")
             generate_pages_recursive(
+                base_path,
                 abs_path,
-                # os.path.join(dir_path_content, f),
                 template_path,
                 os.path.join(dest_dir_path, f),
             )
@@ -55,5 +57,8 @@ def generate_pages_recursive(
             print(f"f of file: {f}")
             rename_ext = f.replace("md", "html")
             generate_page(
-                abs_path, template_path, os.path.join(dest_dir_path, rename_ext)
+                base_path,
+                abs_path,
+                template_path,
+                os.path.join(dest_dir_path, rename_ext),
             )
