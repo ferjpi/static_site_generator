@@ -15,6 +15,8 @@ def generate_page(base_path: str, from_path: str, template_path: str, dest_path:
     content = markdown_to_html_node(markdown_source).to_html()
     title = extract_title(markdown_source)
 
+    logging.info(f"title: {title}")
+
     template = template.replace("{{ Content }}", content)
     template = template.replace("{{ Title }}", title)
     template = template.replace("href='/", f"href='{base_path}/")

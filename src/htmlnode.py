@@ -256,4 +256,5 @@ def extract_title(markdowns: str) -> str:
     if not markdowns.startswith("# "):
         raise Exception("Markdown title must start with a title")
 
-    return markdowns[2:].strip()
+    first_line = markdowns.split("\n")[0]
+    return first_line[2:].strip()
