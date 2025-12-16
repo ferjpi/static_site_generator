@@ -1,1 +1,1 @@
-python3 src/main.py "https://github.com/ferjpi/static_site_generator"
+python3 src/main.py "https://ferjpi.github.io/static_site_generator"
