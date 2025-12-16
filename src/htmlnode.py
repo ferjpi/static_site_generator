@@ -1,10 +1,11 @@
 import re
 
-from typing import List
+from typing import List, Tuple
 from block import BlockType, block_to_block_type
 from textnode import TextNode, TextTypes
 
 
+# it serves as an abstract class
 class HtmlNode:
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag
@@ -59,7 +60,7 @@ class ParentNode(HtmlNode):
         return f"<{self.tag}{props_str}>{content}</{self.tag}>"
 
 
-def text_node_to_html_node(text_node):
+def text_node_to_html_node(text_node: TextNode):
     if text_node.text_type not in TextTypes:
         raise Exception("wrong text type")
 
@@ -76,7 +77,7 @@ def text_node_to_html_node(text_node):
             return LeafNode("a", text_node.text, props={"href": text_node.url})
         case TextTypes.IMAGE:
             return LeafNode(
-                "img", None, props={"src": text_node.url, "alt": text_node.text}
+                "img", "", props={"src": text_node.url, "alt": text_node.text}
             )
 
 
@@ -98,19 +99,17 @@ def split_nodes_delimiter(
     return new_nodes
 
 
-def extract_markdown_images(text):
+def extract_markdown_images(text: str) -> List[Tuple[str, str]]:
     matches = re.findall(r"!\[(.*?)\]\((.*?)\)", text)
-
     return matches
 
 
-def extract_markdown_links(text):
+def extract_markdown_links(text: str) -> List[Tuple[str, str]]:
     matches = re.findall(r"\[(.*?)\]\((.*?)\)", text)
-
     return matches
 
 
-def split_nodes_image(old_nodes) -> List[TextNode]:
+def split_nodes_image(old_nodes: List[TextNode]) -> List[TextNode]:
     split_nodes = []
 
     for node in old_nodes:
@@ -213,10 +212,6 @@ def block_to_html_node(block: str, block_type: BlockType) -> HtmlNode:
         code_node = LeafNode("code", code_text)
         return ParentNode("pre", [code_node])
 
-    # if block_type == BlockType.QUOTE:
-    #     children = text_to_textchildren(block)
-    #     return ParentNode("blockquote", children)
-
     if block_type == BlockType.QUOTE:
         text = block.lstrip(">").strip()
         children = text_to_textchildren(text)
@@ -255,3 +250,10 @@ def markdown_to_html_node(markdowns: str) -> ParentNode:
         block_nodes.append(html_node)
 
     return ParentNode("div", block_nodes)
+
+
+def extract_title(markdowns: str) -> str:
+    if not markdowns.startswith("# "):
+        raise Exception("Markdown title must start with a title")
+
+    return markdowns[2:].strip()

@@ -4,6 +4,7 @@ from htmlnode import (
     HtmlNode,
     LeafNode,
     ParentNode,
+    extract_title,
     markdown_to_blocks,
     markdown_to_html_node,
     split_nodes_delimiter,
@@ -282,6 +283,13 @@ This is the same paragraph on a new line
             html,
             "<div><pre><code>This is text that _should_ remain the **same** even with inline stuff</code></pre></div>",
         )
+
+    def test_extract_title(self):
+        result = extract_title("# This is a title")
+        self.assertEqual(result, "This is a title")
+
+        result2 = extract_title("# hello")
+        self.assertEqual(result2, "hello")
 
     # def test_paragraphs(self):
     #     md = """

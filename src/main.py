@@ -1,11 +1,11 @@
-from textnode import TextNode, TextTypes
-
 from system_management import move_content
+from utils import generate_page, generate_pages_recursive
 
 
 def main():
-    print(TextNode("this is some anchor text", TextTypes.LINK, "https://www.boot.dev"))
     move_content("static", "public")
+    # generate_page("content/index.md", "template.html", "public/index.html")
+    generate_pages_recursive("content", "template.html", "public")
 
 
 if __name__ == "__main__":
